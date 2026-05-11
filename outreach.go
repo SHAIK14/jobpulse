@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"text/tabwriter"
 	"time"
 )
 
@@ -39,6 +40,11 @@ func saveData(jsonData []Details) {
 
 func addDetails(company, joblink, contact, email, title, status, dmsent_at string) {
 
+	if company == "" || joblink == "" || contact == "" {
+		fmt.Println("company, joblink and contact are required")
+		os.Exit(1)
+	}
+
 	data := Details{
 		Company:   company,
 		Joblink:   joblink,
@@ -67,12 +73,45 @@ func listDetails() {
 		fmt.Println("add atleast one company using the 'add' cmd")
 		os.Exit(1)
 	}
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	fmt.Fprintln(w, "ID\tCOMPANY\tJOBLINK\tCONTACT\tTITLE\tSTATUS\tDATE")
 	for _, d := range data {
-		fmt.Println(d.Id, d.Company, d.Joblink, d.Contact, d.Title, d.Status, d.Dmsent_at)
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\n", d.Id, d.Company, d.Joblink, d.Contact, d.Title, d.Status, d.Dmsent_at)
 	}
+	w.Flush()
 
 }
 
+func updateDetails(id int, status string) {
+	data := loadData()
+	if len(data) == 0 {
+		fmt.Println("add atleast one company using the 'add' cmd")
+		os.Exit(1)
+	}
+	for i, d := range data {
+		if d.Id == id {
+			data[i].Status = status
+		}
+	}
+	saveData(data)
+
+}
+func deleteDetail(id int) {
+	data := loadData()
+	if len(data) == 0 {
+		fmt.Println("add atleast one company using the 'add' cmd")
+		os.Exit(1)
+	}
+	newData := []Details{}
+	for _, d := range data {
+		if d.Id == id {
+			newData = append(newData, d)
+		}
+	}
+	saveData(newData)
+	fmt.Println("deleted")
+
+}
 func outreach() {
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
 	companyPtr := addCmd.String("company", "", "name of the company")
@@ -84,6 +123,13 @@ func outreach() {
 	dmSentAtPtr := addCmd.String("date", "", "date of the dm sent")
 
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+
+	updateCmd := flag.NewFlagSet("update", flag.ExitOnError)
+	idPtr := updateCmd.Int("id", 0, "id of the outreach")
+	statusUpdatePtr := updateCmd.String("status", "", "status of the outreach")
+
+	deleteCmd := flag.NewFlagSet("del", flag.ExitOnError)
+	delId := deleteCmd.Int("id", 0, "id of the outreact ")
 
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'add' or 'list' commands ")
@@ -97,6 +143,12 @@ func outreach() {
 	case "list":
 		listCmd.Parse(os.Args[2:])
 		listDetails()
+	case "update":
+		updateCmd.Parse(os.Args[2:])
+		updateDetails(*idPtr, *statusUpdatePtr)
+	case "del":
+		deleteCmd.Parse(os.Args[2:])
+		deleteDetail(*delId)
 
 	default:
 		fmt.Println("expected 'add' or 'list' commands ")
