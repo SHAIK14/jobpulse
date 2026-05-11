@@ -61,6 +61,18 @@ func addDetails(company, joblink, contact, email, title, status, dmsent_at strin
 
 }
 
+func listDetails() {
+	data := loadData()
+	if len(data) == 0 {
+		fmt.Println("add atleast one company using the 'add' cmd")
+		os.Exit(1)
+	}
+	for _, d := range data {
+		fmt.Println(d.Id, d.Company, d.Joblink, d.Contact, d.Title, d.Status, d.Dmsent_at)
+	}
+
+}
+
 func outreach() {
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
 	companyPtr := addCmd.String("company", "", "name of the company")
@@ -71,6 +83,8 @@ func outreach() {
 	statusPtr := addCmd.String("status", "DMed", "status of the cold mail")
 	dmSentAtPtr := addCmd.String("date", "", "date of the dm sent")
 
+	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'add' or 'list' commands ")
 		os.Exit(1)
@@ -79,6 +93,11 @@ func outreach() {
 	case "add":
 		addCmd.Parse(os.Args[2:])
 		addDetails(*companyPtr, *joblinkPtr, *contactPtr, *emailPtr, *titlePtr, *statusPtr, *dmSentAtPtr)
+
+	case "list":
+		listCmd.Parse(os.Args[2:])
+		listDetails()
+
 	default:
 		fmt.Println("expected 'add' or 'list' commands ")
 		os.Exit(1)
