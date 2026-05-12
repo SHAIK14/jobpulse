@@ -104,7 +104,7 @@ func deleteDetail(id int) {
 	}
 	newData := []Details{}
 	for _, d := range data {
-		if d.Id == id {
+		if d.Id != id {
 			newData = append(newData, d)
 		}
 	}
@@ -112,6 +112,38 @@ func deleteDetail(id int) {
 	fmt.Println("deleted")
 
 }
+func followUp() {
+	data := loadData()
+	count := 0
+	printed := false
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+
+	for _, d := range data {
+		if d.Status == "DMed" {
+			dmDate, _ := time.Parse("2006-01-02", d.Dmsent_at)
+			days := time.Since(dmDate).Hours() / 24
+
+			if days >= 3 {
+				if !printed {
+
+					fmt.Fprintln(w, "ID\tCOMPANY\tJOBLINK\tCONTACT\tTITLE\tSTATUS\tDATE")
+					printed = true
+				}
+
+				fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\n", d.Id, d.Company, d.Joblink, d.Contact, d.Title, d.Status, d.Dmsent_at)
+				count++
+
+			}
+
+		}
+
+	}
+	w.Flush()
+	if count == 0 {
+		fmt.Println("nothing needs followup today")
+	}
+}
+
 func outreach() {
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
 	companyPtr := addCmd.String("company", "", "name of the company")
@@ -131,6 +163,8 @@ func outreach() {
 	deleteCmd := flag.NewFlagSet("del", flag.ExitOnError)
 	delId := deleteCmd.Int("id", 0, "id of the outreact ")
 
+	followupCmd := flag.NewFlagSet("followup", flag.ExitOnError)
+
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'add' or 'list' commands ")
 		os.Exit(1)
@@ -149,6 +183,9 @@ func outreach() {
 	case "del":
 		deleteCmd.Parse(os.Args[2:])
 		deleteDetail(*delId)
+	case "followup":
+		followupCmd.Parse(os.Args[2:])
+		followUp()
 
 	default:
 		fmt.Println("expected 'add' or 'list' commands ")
