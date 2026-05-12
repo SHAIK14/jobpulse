@@ -30,13 +30,18 @@ func saveTemplates(jsonData []Templates) {
 }
 
 func addTemplate(role, body string) {
-	data := Templates{
-		Role: role,
-		Body: body,
+	data := loadTemplates()
+
+	for i, d := range data {
+		if d.Role == role {
+			data[i].Body = body
+			saveTemplates(data)
+			return
+
+		}
 	}
-	jsondata := loadTemplates()
-	jsondata = append(jsondata, data)
-	saveTemplates(jsondata)
+	data = append(data, Templates{Role: role, Body: body})
+	saveTemplates(data)
 
 }
 
@@ -55,6 +60,19 @@ func showTemplates() {
 
 }
 
+func updateTemplate(role, body string) {
+	data := loadTemplates()
+	for i, d := range data {
+		if d.Role == role {
+
+			data[i].Body = body
+		}
+
+	}
+	saveTemplates(data)
+
+}
+
 func TemplatesRouter() {
 
 	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
@@ -62,6 +80,10 @@ func TemplatesRouter() {
 	bodyPtr := addCmd.String("body", "", "body of the template")
 
 	listCmd := flag.NewFlagSet("list", flag.ExitOnError)
+
+	updateCmd := flag.NewFlagSet("update", flag.ExitOnError)
+	updateRolePtr := updateCmd.String("role", "", "role to update")
+	updateBodyPtr := updateCmd.String("body", "", "new body")
 
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'add' or 'list' commands ")
@@ -75,6 +97,9 @@ func TemplatesRouter() {
 	case "list":
 		listCmd.Parse(os.Args[3:])
 		showTemplates()
+	case "update":
+		updateCmd.Parse(os.Args[3:])
+		updateTemplate(*updateRolePtr, *updateBodyPtr)
 
 	}
 
