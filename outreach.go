@@ -186,6 +186,8 @@ func outreach() {
 	case "followup":
 		followupCmd.Parse(os.Args[2:])
 		followUp()
+	case "template":
+		TemplatesRouter()
 
 	default:
 		fmt.Println("expected 'add' or 'list' commands ")
