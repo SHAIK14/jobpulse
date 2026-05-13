@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/user"
 	"text/tabwriter"
 )
 
@@ -14,7 +15,8 @@ type Templates struct {
 }
 
 func loadTemplates() []Templates {
-	bytes, err := os.ReadFile("templates.json")
+	usr, _ := user.Current()
+	bytes, err := os.ReadFile(usr.HomeDir + "/.jobpulse_templates")
 	if err != nil {
 		return []Templates{}
 	}
@@ -24,8 +26,10 @@ func loadTemplates() []Templates {
 
 }
 func saveTemplates(jsonData []Templates) {
+	usr, _ := user.Current()
+
 	bytes, _ := json.Marshal(jsonData)
-	os.WriteFile("templates.json", bytes, 0644)
+	os.WriteFile(usr.HomeDir+"/.jobpulse_templates", bytes, 0644)
 
 }
 

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/user"
 	"text/tabwriter"
 	"time"
 )
@@ -22,7 +23,10 @@ type Details struct {
 }
 
 func loadData() []Details {
-	bytes, err := os.ReadFile("jobpulse.json")
+	usr, _ := user.Current()
+
+	bytes, err := os.ReadFile(usr.HomeDir + "/.jobpulse.json")
+
 	if err != nil {
 		return []Details{}
 	}
@@ -33,8 +37,10 @@ func loadData() []Details {
 }
 
 func saveData(jsonData []Details) {
+	usr, _ := user.Current()
 	bytes, _ := json.Marshal(jsonData)
-	os.WriteFile("jobpulse.json", bytes, 0644)
+
+	os.WriteFile(usr.HomeDir+"/.jobpulse.json", bytes, 0644)
 
 }
 
