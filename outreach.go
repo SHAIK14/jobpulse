@@ -44,6 +44,13 @@ func saveData(jsonData []Details) {
 
 }
 
+func turnicate(s string, n int) string {
+	if len(s) > n {
+		return s[:n] + "..."
+	}
+	return s
+}
+
 func addDetails(company, joblink, contact, email, title, status, dmsent_at string) {
 
 	if company == "" || joblink == "" || contact == "" {
@@ -82,7 +89,8 @@ func listDetails() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
 	fmt.Fprintln(w, "ID\tCOMPANY\tJOBLINK\tCONTACT\tTITLE\tSTATUS\tDATE")
 	for _, d := range data {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\n", d.Id, d.Company, d.Joblink, d.Contact, d.Title, d.Status, d.Dmsent_at)
+
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\n", d.Id, d.Company, turnicate(d.Joblink, 30), turnicate(d.Contact, 25), d.Title, d.Status, d.Dmsent_at)
 	}
 	w.Flush()
 
@@ -118,6 +126,22 @@ func deleteDetail(id int) {
 	fmt.Println("deleted")
 
 }
+func showDetails(id int) {
+	data := loadData()
+	for _, d := range data {
+		if d.Id == id {
+			fmt.Printf("ID:      %d\n", d.Id)
+			fmt.Printf("Company: %s\n", d.Company)
+			fmt.Printf("Joblink: %s\n", d.Joblink)
+			fmt.Printf("Contact: %s\n", d.Contact)
+			fmt.Printf("Title:   %s\n", d.Title)
+			fmt.Printf("Status:  %s\n", d.Status)
+			fmt.Printf("Date:    %s\n", d.Dmsent_at)
+
+		}
+	}
+}
+
 func followUp() {
 	data := loadData()
 	count := 0
@@ -171,6 +195,9 @@ func outreach() {
 
 	followupCmd := flag.NewFlagSet("followup", flag.ExitOnError)
 
+	showCmd := flag.NewFlagSet("show", flag.ExitOnError)
+	showIdPtr := showCmd.Int("id", 0, "id of the outreach")
+
 	if len(os.Args) < 2 {
 		fmt.Println("expected 'add' or 'list' commands ")
 		os.Exit(1)
@@ -194,6 +221,9 @@ func outreach() {
 		followUp()
 	case "template":
 		TemplatesRouter()
+	case "show":
+		showCmd.Parse(os.Args[2:])
+		showDetails(*showIdPtr)
 
 	default:
 		fmt.Println("expected 'add' or 'list' commands ")
